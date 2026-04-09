@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快速排序法視覺化</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --pivot-color: #f1c40f;    /* 基準值 (Pivot) */
+            --compare-color: #e74c3c;  /* 正在比對/交換 */
+            --sorted-color: #2ecc71;   /* 已確定位置 */
+            --done-color: #9b59b6;     /* 全部完成後的顏色 */
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 95%;
+            max-width: 900px;
+        }
+
+        .array-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 250px;
+            margin: 40px 0;
+            gap: 6px;
+        }
+
+        .bar {
+            width: 25px;
+            background-color: var(--primary-color);
+            position: relative;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+        }
+
+        .bar-label {
+            position: absolute;
+            top: -22px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background-color: #2c3e50;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+
+        .status-box {
+            background: #f1f2f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            min-height: 55px;
+            border-left: 5px solid var(--pivot-color);
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+        .dot { width: 12px; height: 12px; display: inline-block; border-radius: 50%; margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>快速排序法 (Quick Sort)</h2>
+
+    <div class="legend">
+        <span><span class="dot" style="background:var(--pivot-color)"></span> 基準值 (Pivot)</span>
+        <span><span class="dot" style="background:var(--compare-color)"></span> 比對/交換中</span>
+        <span><span class="dot" style="background:var(--sorted-color)"></span> 已固定位置</span>
+    </div>
+
+    <div class="array-container" id="arrayContainer"></div>
+
+    <div class="status-box" id="status">準備就緒。快速排序透過「基準值」將陣列分區。</div>
+
+    <div class="controls">
+        <button onclick="init()">重置陣列</button>
+        <button id="playBtn" onclick="autoPlay()">自動播放</button>
+        <button id="stepBtn" onclick="manualNext()">下一步</button>
+    </div>
+</div>
+
+<script>
+    const container = document.getElementById('arrayContainer');
+    const statusText = document.getElementById('status');
+    let array = [];
+    let steps = [];
+    let currentStep = 0;
+    let timer = null;
+
+    function init() {
+        array = Array.from({length: 20}, () => Math.floor(Math.random() * 90) + 10);
+        steps = [];
+        currentStep = 0;
+        if(timer) clearInterval(timer);
+        
+        let tempArr = [...array];
+        let finalizedIndices = Array(array.length).fill(false);
+        generateQuickSortSteps(tempArr, 0, tempArr.length - 1, finalizedIndices);
+        
+        steps.push({
+            arr: [...tempArr],
+            pivotIdx: -1,
+            compareIdxs: [],
+            sortedIdxs: Array.from({length: array.length}, (_, i) => i), // 全部固定
+            msg: "排序完全結束！"
+        });
+
+        render();
+        statusText.innerText = "點擊「下一步」觀察基準值如何分區。";
+        document.getElementById('playBtn').disabled = false;
+        document.getElementById('stepBtn').disabled = false;
+    }
+
+    function generateQuickSortSteps(arr, low, high, finalizedIndices) {
+        if (low <= high) {
+            if (low === high) {
+                finalizedIndices[low] = true;
+                steps.push({
+                    arr: [...arr],
+                    pivotIdx: -1,
+                    compareIdxs: [],
+                    sortedIdxs: [...getFinalized(finalizedIndices)],
+                    msg: `區間 [${low}] 只有一個元素，已固定。`
+                });
+                return;
+            }
+
+            let pivotIndex = partition(arr, low, high, finalizedIndices);
+            
+            generateQuickSortSteps(arr, low, pivotIndex - 1, finalizedIndices);
+            generateQuickSortSteps(arr, pivotIndex + 1, high, finalizedIndices);
+        }
+    }
+
+    function partition(arr, low, high, finalizedIndices) {
+        // 選取最後一個元素作為基準值
+        let pivotValue = arr[high];
+        let pivotIdx = high;
+        
+        steps.push({
+            arr: [...arr],
+            pivotIdx: pivotIdx,
+            compareIdxs: [],
+            sortedIdxs: [...getFinalized(finalizedIndices)],
+            msg: `選取區間 [${low}...${high}] 的最後一個元素 ${pivotValue} 為基準值 (Pivot)。`
+        });
+
+        let i = low - 1; // 小於 Pivot 的區域指標
+
+        for (let j = low; j < high; j++) {
+            steps.push({
+                arr: [...arr],
+                pivotIdx: pivotIdx,
+                compareIdxs: [j],
+                sortedIdxs: [...getFinalized(finalizedIndices)],
+                msg: `比較 ${arr[j]} 與 Pivot ${pivotValue}`
+            });
+
+            if (arr[j] < pivotValue) {
+                i++;
+                [arr[i], arr[j]] = [arr[j], arr[arr[i]]]; // 交換
+                [arr[i], arr[j]] = [arr[j], arr[i]]; // 交換
+                
+                steps.push({
+                    arr: [...arr],
+                    pivotIdx: pivotIdx,
+                    compareIdxs: [i, j],
+                    sortedIdxs: [...getFinalized(finalizedIndices)],
+                    msg: `將小於 Pivot 的 ${arr[i]} 交換到左側。`
+                });
+            }
+        }
+
+        // 將 Pivot 交換到正確位置
+        [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+        pivotIdx = i + 1;
+        finalizedIndices[pivotIdx] = true; // Pivot 的位置已確定
+
+        steps.push({
+            arr: [...arr],
+            pivotIdx: pivotIdx,
+            compareIdxs: [i + 1, high],
+            sortedIdxs: [...getFinalized(finalizedIndices)],
+            msg: `將 Pivot ${pivotValue} 交換到分區位置。其左側皆小於它，右側皆大於它。`
+        });
+
+        return pivotIdx;
+    }
+
+    function getFinalized(indices) {
+        return indices.map((f, i) => f ? i : -1).filter(i => i !== -1);
+    }
+
+    function render() {
+        const step = steps[currentStep];
+        if (!step) return;
+
+        container.innerHTML = '';
+        step.arr.forEach((val, idx) => {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = `${val * 2.5}px`;
+            
+            const label = document.createElement('div');
+            label.className = 'bar-label';
+            label.innerText = val;
+            bar.appendChild(label);
+
+            // 顏色邏輯
+            if (step.sortedIdxs.includes(idx)) {
+                bar.style.backgroundColor = 'var(--sorted-color)';
+            } else if (idx === step.pivotIdx) {
+                bar.style.backgroundColor = 'var(--pivot-color)';
+            } else if (step.compareIdxs.includes(idx)) {
+                bar.style.backgroundColor = 'var(--compare-color)';
+            }
+
+            container.appendChild(bar);
+        });
+        statusText.innerText = step.msg;
+    }
+
+    function manualNext() {
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            render();
+        } else {
+            document.getElementById('playBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = true;
+        }
+    }
+
+    function autoPlay() {
+        document.getElementById('playBtn').disabled = true;
+        timer = setInterval(() => {
+            if (currentStep < steps.length - 1) {
+                manualNext();
+            } else {
+                clearInterval(timer);
+            }
+        }, 400); // 稍微加快速度，因為步驟較多
+    }
+
+    init();
+</script>
+</body>
+</html>
