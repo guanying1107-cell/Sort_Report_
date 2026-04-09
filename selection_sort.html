@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選擇排序法視覺化</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --searching-color: #f1c40f; /* 正在掃描的黃色 */
+            --min-found-color: #e67e22; /* 目前找到最小值的橘色 */
+            --sorted-color: #2ecc71;
+            --default-color: #bdc3c7;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f3f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .array-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 250px;
+            margin: 30px 0;
+            gap: 8px;
+        }
+
+        .bar {
+            width: 35px;
+            background-color: var(--primary-color);
+            position: relative;
+            transition: transform 0.2s, background-color 0.2s;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .bar-label {
+            position: absolute;
+            top: -25px;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            background-color: #2c3e50;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover:not(:disabled) { background-color: #34495e; transform: translateY(-1px); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .box { width: 15px; height: 15px; border-radius: 3px; }
+
+        .info-panel {
+            background: #f8f9fa;
+            border-left: 5px solid #3498db;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+            min-height: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>選擇排序法 (Selection Sort)</h2>
+    
+    <div class="legend">
+        <div class="legend-item"><div class="box" style="background:var(--searching-color)"></div> 掃描中</div>
+        <div class="legend-item"><div class="box" style="background:var(--min-found-color)"></div> 當前最小值</div>
+        <div class="legend-item"><div class="box" style="background:var(--sorted-color)"></div> 已排序</div>
+    </div>
+
+    <div class="array-container" id="arrayContainer"></div>
+
+    <div class="info-panel" id="status">準備就緒，點擊按鈕開始。</div>
+
+    <div class="controls">
+        <button onclick="init()">重置陣列</button>
+        <button id="playBtn" onclick="autoPlay()">自動播放</button>
+        <button id="nextBtn" onclick="manualNext()">下一步</button>
+    </div>
+</div>
+
+<script>
+    const container = document.getElementById('arrayContainer');
+    const statusText = document.getElementById('status');
+    let array = [];
+    let steps = [];
+    let currentStep = 0;
+    let timer = null;
+
+    function init() {
+        array = Array.from({length: 12}, () => Math.floor(Math.random() * 80) + 10);
+        steps = [];
+        currentStep = 0;
+        if(timer) clearInterval(timer);
+        generateSelectionSortSteps();
+        render();
+        statusText.innerText = "陣列已生成。選擇排序會從未排序部分找「最小值」，並換到前面。";
+        document.getElementById('playBtn').disabled = false;
+        document.getElementById('nextBtn').disabled = false;
+    }
+
+    function generateSelectionSortSteps() {
+        let arr = [...array];
+        let n = arr.length;
+        let sorted = [];
+
+        for (let i = 0; i < n; i++) {
+            let minIdx = i;
+            // 紀錄起始狀態：標註當前位置為潛在最小值
+            steps.push({
+                arr: [...arr],
+                searching: [],
+                minFound: minIdx,
+                sorted: [...sorted],
+                msg: `第 ${i+1} 輪：假設索引 ${i} (${arr[i]}) 是最小值。`
+            });
+
+            for (let j = i + 1; j < n; j++) {
+                steps.push({
+                    arr: [...arr],
+                    searching: [j],
+                    minFound: minIdx,
+                    sorted: [...sorted],
+                    msg: `檢查 ${arr[j]} 是否比 ${arr[minIdx]} 小？`
+                });
+
+                if (arr[j] < arr[minIdx]) {
+                    minIdx = j;
+                    steps.push({
+                        arr: [...arr],
+                        searching: [],
+                        minFound: minIdx,
+                        sorted: [...sorted],
+                        msg: `找到了！新的最小值是 ${arr[minIdx]}。`
+                    });
+                }
+            }
+
+            if (minIdx !== i) {
+                [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+                steps.push({
+                    arr: [...arr],
+                    searching: [],
+                    minFound: i,
+                    sorted: [...sorted],
+                    msg: `將最小值 ${arr[i]} 與索引 ${minIdx} 的數值交換。`
+                });
+            }
+            sorted.push(i);
+        }
+        steps.push({
+            arr: [...arr],
+            searching: [],
+            minFound: -1,
+            sorted: Array.from({length: n}, (_, i) => i),
+            msg: "排序完成！所有元素已就位。"
+        });
+    }
+
+    function render() {
+        const step = steps[currentStep] || { arr: array, searching: [], minFound: -1, sorted: [] };
+        container.innerHTML = '';
+        step.arr.forEach((val, idx) => {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = `${val * 2.5}px`;
+            
+            const label = document.createElement('div');
+            label.className = 'bar-label';
+            label.innerText = val;
+            bar.appendChild(label);
+
+            if (step.sorted.includes(idx)) {
+                bar.style.backgroundColor = 'var(--sorted-color)';
+            } else if (idx === step.minFound) {
+                bar.style.backgroundColor = 'var(--min-found-color)';
+            } else if (step.searching.includes(idx)) {
+                bar.style.backgroundColor = 'var(--searching-color)';
+            }
+
+            container.appendChild(bar);
+        });
+        if (step.msg) statusText.innerText = step.msg;
+    }
+
+    function manualNext() {
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            render();
+        } else {
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('playBtn').disabled = true;
+        }
+    }
+
+    function autoPlay() {
+        document.getElementById('playBtn').disabled = true;
+        timer = setInterval(() => {
+            if (currentStep < steps.length - 1) {
+                manualNext();
+            } else {
+                clearInterval(timer);
+            }
+        }, 300);
+    }
+
+    init();
+</script>
+</body>
+</html>
