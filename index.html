@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>排序演算法分析報告 - 林冠穎</title>
+    <style>
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; line-height: 1.8; color: #333; max-width: 1100px; margin: 0 auto; padding: 40px 20px; background: #f4f7f6; }
+        header { border-bottom: 4px solid #2c3e50; margin-bottom: 35px; padding-bottom: 15px; text-align: center; }
+        h1 { color: #2c3e50; font-size: 2.2rem; margin-bottom: 10px; }
+        h2 { color: #2980b9; border-left: 6px solid #2980b9; padding-left: 15px; margin-top: 45px; background: #eef7fc; padding-top: 5px; padding-bottom: 5px; }
+        h3 { color: #34495e; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 25px; }
+        .section { background: white; padding: 35px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 25px; }
+        
+        table { width: 100%; border-collapse: collapse; margin: 25px 0; background: white; }
+        th, td { border: 1px solid #e0e0e0; padding: 15px; text-align: left; }
+        th { background-color: #2c3e50; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        .complexity-n2 { color: #e74c3c; font-weight: bold; }
+        .complexity-nlogn { color: #27ae60; font-weight: bold; }
+        
+        .experiment-zone { background: #2c3e50; color: white; padding: 35px; border-radius: 12px; }
+        .input-group { margin-bottom: 20px; background: #34495e; padding: 20px; border-radius: 8px; }
+        input { padding: 10px; border-radius: 4px; border: none; width: 180px; font-size: 1rem; color: #333; }
+        button { padding: 10px 25px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.3s; }
+        button:hover { background: #2ecc71; transform: translateY(-2px); }
+        
+        #resultsTable { background: white; color: #333; border-radius: 8px; overflow: hidden; }
+        .btn-link { display: inline-block; padding: 6px 16px; background: #3498db; color: white; text-decoration: none; border-radius: 20px; font-size: 0.85rem; transition: 0.3s; }
+        .btn-link:hover { background: #2980b9; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        
+        ul li { margin-bottom: 12px; }
+        strong { color: #2c3e50; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>排序演算法分析專題報告</h1>
+    <p>姓名：林冠穎 | 日期：2026年4月10日</p>
+</header>
+
+<div class="section">
+    <h2>一、前言</h2>
+    <p>在資訊科學領域中，<strong>排序 (Sorting)</strong> 是最基礎且最重要的運算之一。無論是搜尋引擎的資料檢索、資料庫的索引建立，還是社群媒體的動態排序，都離不開高效能的排序演算法。</p>
+    <p>本報告針對五種經典排序演算法進行深度探討。我們將從演算法的<strong>運作邏輯</strong>、<strong>時間與空間複雜度</strong>出發，並透過 JavaScript 撰寫自動化測試腳本，實測在不同數據規模（n）下各演算法的反應時間。最終目的是理解在處理海量數據時，如何選擇最適合的工具以達到效能最佳化。</p>
+</div>
+
+<div class="section">
+    <h2>二、排序法原理詳細介紹</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 150px;">排序法名稱</th>
+                <th>核心運作原理</th>
+                <th style="width: 120px;">操作連結</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>氣泡排序 (Bubble Sort)</strong></td>
+                <td>最直觀的演算法。重複走訪序列，每次比較相鄰的兩個元素，若順序錯誤則對調。每一輪會將目前未排序區的最大值「浮」到序列末端。</td>
+                <td><a href="bubble_sort.html" class="btn-link">進入模擬</a></td>
+            </tr>
+            <tr>
+                <td><strong>選擇排序 (Selection Sort)</strong></td>
+                <td>在未排序序列中找到最小（大）元素，存放到排序序列的起始位置，再從剩餘未排序元素中繼續尋找，重複直到排序完成。特點是交換次數少。</td>
+                <td><a href="selection_sort.html" class="btn-link">進入模擬</a></td>
+            </tr>
+            <tr>
+                <td><strong>插入排序 (Insertion Sort)</strong></td>
+                <td>類似整理撲克牌。將資料分為「已排序」與「未排序」兩部分，逐一取出未排序元素，在已排序序列中從後往前掃描，找到位置並插入。</td>
+                <td><a href="insertion_sort.html" class="btn-link">進入模擬</a></td>
+            </tr>
+            <tr>
+                <td><strong>合併排序 (Merge Sort)</strong></td>
+                <td>採用<strong>分而治之 (Divide and Conquer)</strong>。將大陣列遞迴分割成最小單位（單一元素），再兩兩按順序合併。優點是性能極其穩定。</td>
+                <td><a href="merge_sort.html" class="btn-link">進入模擬</a></td>
+            </tr>
+            <tr>
+                <td><strong>快速排序 (Quick Sort)</strong></td>
+                <td>選取一基準值 (Pivot)，將序列分為比 Pivot 小與比 Pivot 大的兩部分，再對這兩部分遞迴排序。是實務上平均速度最快的演算法。</td>
+                <td><a href="quick_sort.html" class="btn-link">進入模擬</a></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>三、複雜度分析與比較</h2>
+    <p>演算法的效能通常以 <strong>Big O Notation</strong> 表示。以下整理了各演算法在不同狀況下的表現：</p>
+    <table>
+        <thead>
+            <tr>
+                <th>排序法</th>
+                <th>平均時間複雜度</th>
+                <th>最差時間複雜度</th>
+                <th>空間複雜度</th>
+                <th>穩定性</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>氣泡排序</td>
+                <td class="complexity-n2">O(n²)</td>
+                <td class="complexity-n2">O(n²)</td>
+                <td>O(1)</td>
+                <td>穩定</td>
+            </tr>
+            <tr>
+                <td>選擇排序</td>
+                <td class="complexity-n2">O(n²)</td>
+                <td class="complexity-n2">O(n²)</td>
+                <td>O(1)</td>
+                <td>不穩定</td>
+            </tr>
+            <tr>
+                <td>插入排序</td>
+                <td class="complexity-n2">O(n²)</td>
+                <td class="complexity-n2">O(n²)</td>
+                <td>O(1)</td>
+                <td>穩定</td>
+            </tr>
+            <tr>
+                <td>合併排序</td>
+                <td class="complexity-nlogn">O(n log n)</td>
+                <td class="complexity-nlogn">O(n log n)</td>
+                <td>O(n)</td>
+                <td>穩定</td>
+            </tr>
+            <tr>
+                <td>快速排序</td>
+                <td class="complexity-nlogn">O(n log n)</td>
+                <td class="complexity-n2">O(n²)</td>
+                <td>O(log n)</td>
+                <td>不穩定</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section experiment-zone">
+    <h2>四、數據模擬與實測實驗</h2>
+    <p>為了驗證理論，我們建立一個隨機陣列生成器。請調整 <strong>n (資料量)</strong> 的大小，觀察執行時間的非線性成長：</p>
+    
+    <div class="input-group">
+        <label for="testN">資料量 (n)：</label>
+        <input type="number" id="testN" value="5000" step="1000">
+        <button onclick="runExperiment()">執行實驗測試</button>
+    </div>
+    
+    <table id="resultsTable">
+        <thead>
+            <tr>
+                <th>演算法名稱</th>
+                <th>資料規模 (n)</th>
+                <th>實際耗時 (Milliseconds)</th>
+            </tr>
+        </thead>
+        <tbody id="resultBody">
+            <tr><td colspan='3' style='text-align:center;'>尚未開始測試</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>五、心得與結論</h2>
+    
+    <h3>1. 效能觀察報告</h3>
+    <ul>
+        <li><strong>小數據規模：</strong> 當 n 較小（如 &lt; 1000）時，五種演算法的體感差異極小。有趣的是，<strong>插入排序</strong>在處理「近乎排序完成」的資料時，速度甚至會快過合併排序，因為它的係數較小且不需額外記憶體。</li>
+        <li><strong>大數據規模：</strong> 當 n 提升至 10,000 以上時，<strong>O(n²)</strong> 類型的演算法（氣泡、選擇）會出現明顯的「效能懸崖」。執行時間會隨資料量平方增長，導致瀏覽器可能出現暫時無回應的情況。</li>
+        <li><strong>穩定效能組：</strong> <strong>合併排序</strong>與<strong>快速排序</strong>展現了 <strong>O(n log n)</strong> 的驚人效率，處理 10,000 筆資料通常能在 10ms 內完成。</li>
+    </ul>
+
+    <h3>2. 綜合結論與建議</h3>
+    <p>根據理論分析與實驗數據，我們可以得出以下結論：</p>
+    <ul>
+        <li><strong>穩定性考量：</strong> 若需要保持相同數值的原始相對順序，應選擇<strong>合併排序</strong>或<strong>插入排序</strong>。</li>
+        <li><strong>空間受限：</strong> 快速排序雖然快，但遞迴需要堆疊空間；若裝置記憶體極度受限，<strong>選擇排序</strong>或<strong>插入排序</strong>（原地排序）是較好的選擇。</li>
+        <li><strong>通用的最優解：</strong> 在現代開發（如處理 API 回傳的巨量資料）中，應優先選擇<strong>快速排序 (Quick Sort)</strong>，這也是許多內建函式庫（如 JavaScript 的 sort()）底層實作的核心想法。</li>
+    </ul>
+</div>
+
+<script>
+    function bubbleSort(arr) {
+        let n = arr.length;
+        for (let i = 0; i < n; i++)
+            for (let j = 0; j < n - i - 1; j++)
+                if (arr[j] > arr[j+1]) [arr[j], arr[j+1]] = [arr[j+1], arr[j]];
+    }
+    function selectionSort(arr) {
+        let n = arr.length;
+        for (let i = 0; i < n; i++) {
+            let min = i;
+            for (let j = i + 1; j < n; j++) if (arr[j] < arr[min]) min = j;
+            [arr[i], arr[min]] = [arr[min], arr[i]];
+        }
+    }
+    function insertionSort(arr) {
+        for (let i = 1; i < arr.length; i++) {
+            let key = arr[i];
+            let j = i - 1;
+            while (j >= 0 && arr[j] > key) { arr[j+1] = arr[j]; j--; }
+            arr[j+1] = key;
+        }
+    }
+    function quickSort(arr) {
+        if (arr.length <= 1) return arr;
+        let pivot = arr[0], left = [], right = [];
+        for (let i = 1; i < arr.length; i++) arr[i] < pivot ? left.push(arr[i]) : right.push(arr[i]);
+        return [...quickSort(left), pivot, ...quickSort(right)];
+    }
+    function mergeSort(arr) {
+        if (arr.length <= 1) return arr;
+        const mid = Math.floor(arr.length / 2);
+        const left = mergeSort(arr.slice(0, mid));
+        const right = mergeSort(arr.slice(mid));
+        return merge(left, right);
+    }
+    function merge(left, right) {
+        let result = [], i = 0, j = 0;
+        while (i < left.length && j < right.length) {
+            if (left[i] < right[j]) result.push(left[i++]);
+            else result.push(right[j++]);
+        }
+        return result.concat(left.slice(i)).concat(right.slice(j));
+    }
+
+    async function runExperiment() {
+        const nValue = document.getElementById('testN').value;
+        const n = parseInt(nValue);
+        const body = document.getElementById('resultBody');
+        if (isNaN(n) || n <= 0) { alert("請輸入有效正整數"); return; }
+        
+        body.innerHTML = "<tr><td colspan='3' style='text-align:center;'>分析中...請稍候...</td></tr>";
+        
+        setTimeout(() => {
+            const rawData = Array.from({length: n}, () => Math.floor(Math.random() * n));
+            const algos = [
+                { name: "氣泡排序", fn: (a) => bubbleSort(a) },
+                { name: "選擇排序", fn: (a) => selectionSort(a) },
+                { name: "插入排序", fn: (a) => insertionSort(a) },
+                { name: "合併排序", fn: (a) => mergeSort(a) },
+                { name: "快速排序", fn: (a) => quickSort(a) }
+            ];
+
+            body.innerHTML = "";
+            algos.forEach(algo => {
+                let testArr = [...rawData];
+                const start = performance.now();
+                algo.fn(testArr);
+                const end = performance.now();
+                
+                const row = `<tr>
+                    <td><strong>${algo.name}</strong></td>
+                    <td>${n.toLocaleString()}</td>
+                    <td>${(end - start).toFixed(2)} ms</td>
+                </tr>`;
+                body.innerHTML += row;
+            });
+        }, 100);
+    }
+</script>
+
+</body>
+</html>
