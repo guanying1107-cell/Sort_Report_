@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合併排序法視覺化</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --split-color: #f39c12;    /* 拆分中的顏色 */
+            --merge-color: #e74c3c;    /* 合併比對中的顏色 */
+            --sorted-color: #2ecc71;   /* 完成合併的顏色 */
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 95%;
+            max-width: 900px;
+        }
+
+        .array-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 250px;
+            margin: 40px 0;
+            gap: 8px;
+        }
+
+        .bar {
+            width: 30px;
+            background-color: var(--primary-color);
+            position: relative;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .bar-label {
+            position: absolute;
+            top: -25px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background-color: #2c3e50;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+
+        .status-box {
+            background: #f1f2f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            min-height: 50px;
+            border-left: 5px solid var(--primary-color);
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+        .dot { width: 12px; height: 12px; display: inline-block; border-radius: 50%; margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>合併排序法 (Merge Sort)</h2>
+
+    <div class="legend">
+        <span><span class="dot" style="background:var(--split-color)"></span> 拆分區域</span>
+        <span><span class="dot" style="background:var(--merge-color)"></span> 合併比對</span>
+        <span><span class="dot" style="background:var(--sorted-color)"></span> 局部排序完成</span>
+    </div>
+
+    <div class="array-container" id="arrayContainer"></div>
+
+    <div class="status-box" id="status">準備就緒。合併排序會遞迴地將陣列對半拆分，再重新組合。</div>
+
+    <div class="controls">
+        <button onclick="init()">重置陣列</button>
+        <button id="playBtn" onclick="autoPlay()">自動播放</button>
+        <button id="stepBtn" onclick="manualNext()">下一步</button>
+    </div>
+</div>
+
+<script>
+    const container = document.getElementById('arrayContainer');
+    const statusText = document.getElementById('status');
+    let array = [];
+    let steps = [];
+    let currentStep = 0;
+    let timer = null;
+
+    function init() {
+        array = Array.from({length: 16}, () => Math.floor(Math.random() * 80) + 10);
+        steps = [];
+        currentStep = 0;
+        if(timer) clearInterval(timer);
+        
+        let tempArr = [...array];
+        generateMergeSortSteps(tempArr, 0, tempArr.length - 1);
+        
+        steps.push({
+            arr: [...tempArr],
+            activeIdx: [],
+            state: 'done',
+            msg: "排序完全結束！"
+        });
+
+        render();
+        statusText.innerText = "點擊「下一步」觀察拆分與合併的過程。";
+        document.getElementById('playBtn').disabled = false;
+        document.getElementById('stepBtn').disabled = false;
+    }
+
+    function generateMergeSortSteps(arr, l, r) {
+        if (l >= r) return;
+
+        const m = Math.floor((l + r) / 2);
+
+        steps.push({
+            arr: [...arr],
+            activeIdx: Array.from({length: r - l + 1}, (_, i) => l + i),
+            state: 'split',
+            msg: `拆分區間 [${l}...${r}] 為 [${l}...${m}] 與 [${m+1}...${r}]`
+        });
+
+        generateMergeSortSteps(arr, l, m);
+        generateMergeSortSteps(arr, m + 1, r);
+        merge(arr, l, m, r);
+    }
+
+    function merge(arr, l, m, r) {
+        let n1 = m - l + 1;
+        let n2 = r - m;
+        let L = arr.slice(l, m + 1);
+        let R = arr.slice(m + 1, r + 1);
+
+        let i = 0, j = 0, k = l;
+
+        while (i < n1 && j < n2) {
+            steps.push({
+                arr: [...arr],
+                activeIdx: [l + i, m + 1 + j],
+                state: 'compare',
+                msg: `合併中：比較左側 ${L[i]} 與右側 ${R[j]}`
+            });
+
+            if (L[i] <= R[j]) {
+                arr[k] = L[i];
+                i++;
+            } else {
+                arr[k] = R[j];
+                j++;
+            }
+            k++;
+        }
+
+        while (i < n1) {
+            arr[k] = L[i];
+            i++; k++;
+        }
+        while (j < n2) {
+            arr[k] = R[j];
+            j++; k++;
+        }
+
+        steps.push({
+            arr: [...arr],
+            activeIdx: Array.from({length: r - l + 1}, (_, i) => l + i),
+            state: 'merged',
+            msg: `區間 [${l}...${r}] 合併完成。`
+        });
+    }
+
+    function render() {
+        const step = steps[currentStep];
+        if (!step) return;
+
+        container.innerHTML = '';
+        step.arr.forEach((val, idx) => {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = `${val * 2.5}px`;
+            
+            const label = document.createElement('div');
+            label.className = 'bar-label';
+            label.innerText = val;
+            bar.appendChild(label);
+
+            // 顏色邏輯
+            if (step.activeIdx.includes(idx)) {
+                if (step.state === 'split') bar.style.backgroundColor = 'var(--split-color)';
+                else if (step.state === 'compare') bar.style.backgroundColor = 'var(--merge-color)';
+                else if (step.state === 'merged') bar.style.backgroundColor = 'var(--sorted-color)';
+            } else if (step.state === 'done') {
+                bar.style.backgroundColor = 'var(--sorted-color)';
+            }
+
+            container.appendChild(bar);
+        });
+        statusText.innerText = step.msg;
+    }
+
+    function manualNext() {
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            render();
+        } else {
+            document.getElementById('playBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = true;
+        }
+    }
+
+    function autoPlay() {
+        document.getElementById('playBtn').disabled = true;
+        timer = setInterval(() => {
+            if (currentStep < steps.length - 1) {
+                manualNext();
+            } else {
+                clearInterval(timer);
+            }
+        }, 500);
+    }
+
+    init();
+</script>
+</body>
+</html>
