@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>插入排序法視覺化</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --key-color: #9b59b6;   /* 當前要插入的元素（紫色） */
+            --compare-color: #e74c3c; /* 正在比對的元素（紅色） */
+            --sorted-color: #2ecc71;  /* 已排序部分的底色（綠色） */
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f5f6fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 95%;
+            max-width: 800px;
+        }
+
+        .array-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 250px;
+            margin: 40px 0;
+            gap: 10px;
+        }
+
+        .bar {
+            width: 35px;
+            background-color: var(--primary-color);
+            position: relative;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+        }
+
+        .bar-label {
+            position: absolute;
+            top: -25px;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background-color: #2f3640;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:disabled { background-color: #dcdde1; cursor: not-allowed; }
+
+        .status-box {
+            background: #f1f2f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            min-height: 45px;
+            border-left: 5px solid var(--key-color);
+            text-align: left;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        .dot { width: 12px; height: 12px; display: inline-block; border-radius: 50%; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>插入排序法 (Insertion Sort)</h2>
+
+    <div class="legend">
+        <span><span class="dot" style="background:var(--key-color)"></span> 待插入元素</span>
+        <span><span class="dot" style="background:var(--compare-color)"></span> 比對中</span>
+        <span><span class="dot" style="background:var(--sorted-color)"></span> 已排序區域</span>
+    </div>
+
+    <div class="array-container" id="arrayContainer"></div>
+
+    <div class="status-box" id="status">準備就緒。</div>
+
+    <div class="controls">
+        <button onclick="init()">隨機重排</button>
+        <button id="playBtn" onclick="autoPlay()">自動播放</button>
+        <button id="stepBtn" onclick="manualNext()">下一步</button>
+    </div>
+</div>
+
+<script>
+    const container = document.getElementById('arrayContainer');
+    const statusText = document.getElementById('status');
+    let array = [];
+    let steps = [];
+    let currentStep = 0;
+    let timer = null;
+
+    function init() {
+        array = Array.from({length: 10}, () => Math.floor(Math.random() * 80) + 10);
+        steps = [];
+        currentStep = 0;
+        if(timer) clearInterval(timer);
+        generateInsertionSortSteps();
+        render();
+        statusText.innerText = "插入排序開始時，第一個元素自動視為「已排序」。";
+        document.getElementById('playBtn').disabled = false;
+        document.getElementById('stepBtn').disabled = false;
+    }
+
+    function generateInsertionSortSteps() {
+        let arr = [...array];
+        let n = arr.length;
+
+        // 第一個元素預設已排序
+        steps.push({
+            arr: [...arr],
+            keyIdx: -1,
+            compareIdx: -1,
+            sortedCount: 1,
+            msg: "開始排序：索引 0 是初始的已排序區域。"
+        });
+
+        for (let i = 1; i < n; i++) {
+            let key = arr[i];
+            let j = i - 1;
+
+            steps.push({
+                arr: [...arr],
+                keyIdx: i,
+                compareIdx: -1,
+                sortedCount: i,
+                msg: `選取 ${key} 作為待插入元素，準備往前找位置。`
+            });
+
+            while (j >= 0 && arr[j] > key) {
+                steps.push({
+                    arr: [...arr],
+                    keyIdx: i,
+                    compareIdx: j,
+                    sortedCount: i,
+                    msg: `因為 ${arr[j]} > ${key}，將 ${arr[j]} 往後移。`
+                });
+                
+                arr[j + 1] = arr[j];
+                j--;
+
+                steps.push({
+                    arr: [...arr],
+                    keyIdx: -1, // key 暫時在空中
+                    compareIdx: j + 1,
+                    sortedCount: i,
+                    msg: "數值已後移，騰出空間。"
+                });
+            }
+            
+            arr[j + 1] = key;
+            steps.push({
+                arr: [...arr],
+                keyIdx: j + 1,
+                compareIdx: -1,
+                sortedCount: i + 1,
+                msg: `將 ${key} 插入到正確位置。`
+            });
+        }
+
+        steps.push({
+            arr: [...arr],
+            keyIdx: -1,
+            compareIdx: -1,
+            sortedCount: n,
+            msg: "所有元素皆已插入完成！"
+        });
+    }
+
+    function render() {
+        const step = steps[currentStep];
+        if (!step) return;
+
+        container.innerHTML = '';
+        step.arr.forEach((val, idx) => {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = `${val * 2.5}px`;
+            
+            const label = document.createElement('div');
+            label.className = 'bar-label';
+            label.innerText = val;
+            bar.appendChild(label);
+
+            // 顏色邏輯
+            if (idx === step.keyIdx) {
+                bar.style.backgroundColor = 'var(--key-color)';
+                bar.style.transform = 'translateY(-20px)'; // 浮起效果
+            } else if (idx === step.compareIdx) {
+                bar.style.backgroundColor = 'var(--compare-color)';
+            } else if (idx < step.sortedCount) {
+                bar.style.backgroundColor = 'var(--sorted-color)';
+            }
+
+            container.appendChild(bar);
+        });
+        statusText.innerText = step.msg;
+    }
+
+    function manualNext() {
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            render();
+        } else {
+            document.getElementById('playBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = true;
+        }
+    }
+
+    function autoPlay() {
+        document.getElementById('playBtn').disabled = true;
+        timer = setInterval(() => {
+            if (currentStep < steps.length - 1) {
+                manualNext();
+            } else {
+                clearInterval(timer);
+            }
+        }, 400);
+    }
+
+    init();
+</script>
+</body>
+</html>
